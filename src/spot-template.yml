@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Template to create a GPU-enabled spot instance
+
+Resources:
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{appName}}
+      Path: "/"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+
+  InstancePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: {{appName}}
+      Roles:
+      - !Ref InstanceRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        {{#each policyStatements}}
+        - Effect: {{Effect}}
+          Action:
+          {{#each Action}}
+          - '{{{this}}}'
+          {{/each}}
+          Resource:
+          {{#each Resource}}
+          - '{{{this}}}'
+          {{/each}}
+        {{/each}}
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - Ref: InstanceRole
+
+  FleetRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{appName}}-fleet-role
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - spotfleet.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole
+
+  SpotFleet:
+    Type: AWS::EC2::SpotFleet
+    Properties: 
+      SpotFleetRequestConfigData:
+        IamFleetRole: !GetAtt FleetRole.Arn
+        SpotPrice: 0.9
+        TargetCapacity: 1
+        ValidFrom: "{{validFrom}}"
+        ValidUntil: "{{validUntil}}"
+        AllocationStrategy: lowestPrice
+        TerminateInstancesWithExpiration: true
+        LaunchSpecifications:
+        - EbsOptimized: 'false'
+          InstanceType: {{instanceType}}
+          ImageId: {{imageId}}
+          KeyName: {{keyName}}
+          SpotPrice: 0.9
+          IamInstanceProfile:
+            Arn: !GetAtt InstanceProfile.Arn
+          BlockDeviceMappings:
+          - DeviceName: /dev/sda1
+            Ebs:
+              DeleteOnTermination: true
+              VolumeType: gp2
+              VolumeSize: {{volumeSize}}
+          SecurityGroups:
+          - GroupId: {{securityGroupId}}
+          SubnetId: {{subnetId}}
+          UserData: {{userData}}
+          # TODO - Add tags

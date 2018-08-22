@@ -1,0 +1,13 @@
+version: 1
+
+name: dsw88
+
+extensions:
+  spot: spot-gpu-handel-extension
+
+environments:
+  dev:
+    instance:
+      type: spot::spotgpu
+      key_name: dsw88-personal
+      volume_size: 75
