@@ -1,2 +1,2 @@
-# <%= extensionName %>-handel-extension
-This project contains the code for the <%= extensionName %>-handel-extension
+# spot-gpu-handel-extension
+Handel extension that provides a spot GPU instance
