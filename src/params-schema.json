@@ -13,7 +13,8 @@
             "errorMessage": "The 'key_name' parameter must be a string"
         },
         "volume_size": {
-            "type": "number",
+            "type": "integer",
+            "minimum": 75,
             "errorMessage": "The 'volume_size' paramter must be a number"
         },
         "tags": {
